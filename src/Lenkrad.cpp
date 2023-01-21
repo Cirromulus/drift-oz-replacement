@@ -22,8 +22,19 @@ static constexpr uint8_t DEADZONE = 15;
 static constexpr uint8_t BUTTON_BOUNCE = 20;
 static constexpr uint8_t NUMBER_OF_BUTTONS = 32;
 
-uint8_t bounce_counter[NUMBER_OF_BUTTONS];
-uint8_t lighting_state = 0;
+static uint8_t bounce_counter[NUMBER_OF_BUTTONS];
+static uint8_t lighting_state = 0;
+
+static constexpr unsigned lightingInterval_ms = 250;
+static uint16_t previousMillis = 0;
+
+void decrementButtonDebounce() {
+  for(auto& bounce : bounce_counter) {
+    if(bounce > 0) {
+      bounce--;
+    }
+  }
+}
 
 Joystick_ Joystick(JOYSTICK_DEFAULT_REPORT_ID,
   JOYSTICK_TYPE_MULTI_AXIS,
@@ -109,24 +120,13 @@ void setup()
 }
 
 
-void decrementButtonDebounce() {
-  for(auto& bounce : bounce_counter) {
-    if(bounce > 0) {
-      bounce--;
-    }
-  }
-}
-
-unsigned int interval = 250;
-unsigned long previousMillis = 0;
-
 void loop()
 {
   careForJoystick();
   decrementButtonDebounce();
   delay(4);
-  unsigned long currentMillis = millis();
-  if (currentMillis - previousMillis >= (interval)) {
+  const auto currentMillis = millis();
+  if (currentMillis - previousMillis >= (lightingInterval_ms)) {
     // save the last time you blinked the LED
     previousMillis = currentMillis;
     careForLighting();
